@@ -61,8 +61,9 @@ case $(uname -s) in
 	memTotal_kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)
 	 memBuff_kb=$(awk '/^Buffers:/  {print $2}' /proc/meminfo)
 	memCache_kb=$(awk '/^Cached:/   {print $2}' /proc/meminfo)
-
-        if test -f "/proc/spl/kstat/zfs/arcstats"; then
+	 memFree_kb=$(awk '/^MemFree:/  {print $2}' /proc/meminfo)
+        
+	if test -f "/proc/spl/kstat/zfs/arcstats"; then
         # Get the size of the ZFS ARC in kb and include it with cache
          memZfsArc_kb=$(awk '/^size/ { printf "%i\n", $3 / 1024 }' </proc/spl/kstat/zfs/arcstats)
          memCache_kb=$(( memCache_kb + memZfsArc_kb))
@@ -71,7 +72,7 @@ case $(uname -s) in
 	if ! grep -q 'MemAvailable:' /proc/meminfo || test -f "/proc/spl/kstat/zfs/arcstats" ; then
 	# Instead of using $3 from the free(1) output above, we'll calculate
 	# the used memory ourselves:
-	 memUsed_kb=$((  memTotal_kb - memBuff_kb - memCache_kb))
+	 memUsed_kb=$((  memTotal_kb - memFree_kb - memBuff_kb - memCache_kb))
 	  memUsed_p=$((( memUsed_kb * 100) / memTotal_kb))
 	else
 	#
